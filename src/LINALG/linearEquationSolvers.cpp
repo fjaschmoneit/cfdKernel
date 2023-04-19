@@ -8,15 +8,15 @@
 
 using namespace LINALG;
 
-void linearEquationSolvers::solveConjugateGradient(const CompressedMatrix<double, rowMajor> &A,
-                                                   const DynamicVector<double, columnVector> &b,
-                                                   DynamicVector<double, columnVector> &x,
+void linearEquationSolvers::solveConjugateGradient(const CompressedMatrix<GLOBAL::scalar, rowMajor> &A,
+                                                   const DynamicVector<GLOBAL::scalar, columnVector> &b,
+                                                   DynamicVector<GLOBAL::scalar, columnVector> &x,
                                                    const size_t iterations,
                                                    const double convergenceLimit) {
 
     const size_t NN = b.size();
-    DynamicVector<double,columnVector> r( NN ), p( NN ), Ap( NN );
-    double alpha, beta, delta;
+    DynamicVector<GLOBAL::scalar ,columnVector> r( NN ), p( NN ), Ap( NN );
+    GLOBAL::scalar alpha, beta, delta;
 
     r = b - A * x;
     p = r;
