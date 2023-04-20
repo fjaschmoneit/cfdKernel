@@ -1,7 +1,4 @@
 //
-// Created by fynne on 4/17/23.
-//
-
 #include "gtest/gtest.h"
 #include "LINALG/matrixOperations.h"
 #include "LINALG/linearEquationSolvers.h"
@@ -18,7 +15,6 @@ struct matrixOperationsFixture : public ::testing::Test {
     matrix identityMatrix = matrixOperations::newIdentityMatrix(length);
     matrix zeroMatrix = matrixOperations::newZeroMatrix(length);
 };
-
 
 TEST_F(matrixOperationsFixture, fillbandWithEntries_identityToZeroMat){
     auto matrix = identityMatrix;
