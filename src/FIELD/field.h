@@ -1,8 +1,6 @@
-//
-// Created by fynn on 4/16/23.
-//
-
 #include <memory>
+#include <iostream>
+
 #include "../../extLibs/mdspan.hpp" // experimental implementation of unreleased C++23 feature mdspan
 
 #include "../globalTypeDefs.h"
@@ -18,10 +16,17 @@ namespace FIELD{
         const MESH::structured2dRegularRectangle &mesh_;
 
     public:
-        GLOBAL::vector fvmField_;
+        field(MESH::structured2dRegularRectangle const &mesh);
+
+        field(field &otherField);
+
+        // why public?
+        GLOBAL::vector fvmField_;  // change name to data?
         FIELD::mat_2d fieldView_;
 
-        // constructors:
-        field(MESH::structured2dRegularRectangle const &mesh);
+
     };
+
+    void print( FIELD::field const & fieldObj );
+    void print( GLOBAL::vector const & vecObj );
 }

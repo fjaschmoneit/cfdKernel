@@ -15,10 +15,11 @@ namespace FVM {
 
     namespace collocatedField {
         GLOBAL::vector createLinearizedData(MESH::structured2dRegularRectangle const &mesh);
-
-//        collocatedField( MESH::structured2dRegularRectangle const &mesh );
+        void fillWithIncreasingNumbers( GLOBAL::vector &vec);
 
     };
+
+
 
 };
 

@@ -32,7 +32,7 @@ void linearEquationSolvers::solveConjugateGradient(const CompressedMatrix<GLOBAL
         beta = (r,r);
         if( std::sqrt( beta/delta ) < convergenceLimit ) {
             // debug message:
-            std::cout << "conjugate gradient converged after "<< iteration <<  "iterations." << std::endl;
+            std::cout << "conjugate gradient converged after "<< iteration <<  " iterations." << std::endl;
             break;
         }
         p = r + ( beta / delta ) * p;

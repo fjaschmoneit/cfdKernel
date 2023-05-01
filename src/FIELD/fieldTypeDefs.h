@@ -9,5 +9,4 @@
 namespace FIELD{
     using mat_2d = std::experimental::mdspan<GLOBAL::scalar, std::experimental::dextents<size_t, 2> >;
 
-
 }

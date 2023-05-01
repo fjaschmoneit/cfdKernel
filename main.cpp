@@ -4,13 +4,14 @@
 
 #include "globalTypeDefs.h"
 
+#include "FVM/coefficientMatrixGenerator.h"
+
 #include "LINALG/linearEquationSolvers.h"
 #include "LINALG/matrixOperations.h"
 #include "LINALG/linalgTypeDefs.h"
 
 #include "MESH/structured2d.h"
 #include "FIELD/field.h"
-
 
 int main()
 {
@@ -19,24 +20,32 @@ int main()
     auto T = FIELD::field( mesh );
 
     const size_t NN(mesh.nbCells);
+
+    // defining fluxes
+    GLOBAL::vector ap{3,2,2,2,3};
+    GLOBAL::vector ae(5,-1);
+    GLOBAL::vector aw(5,-1);
+    GLOBAL::vector sourceTerms{2*100,0,0,0,2*500};
+
+    // translating fluxes to coefficient arrays
+    FVM::coefficientMatrixGenerator coeffGen { mesh };
+    coeffGen.setDirectionalFlux( ap, FVM::CardinalDirection::centre );
+    coeffGen.setDirectionalFlux( ae, FVM::CardinalDirection::east );
+    coeffGen.setDirectionalFlux( aw, FVM::CardinalDirection::west );
+    coeffGen.setConstVec( sourceTerms );
+
+    // linear system templates
     LINALG::matrix A = LINALG::matrixOperations::newIdentityMatrix(NN);
-    std::cout << A << std::endl;
+    LINALG::vector b = LINALG::vector(NN, 0.0);
+    LINALG::vector x = LINALG::vector(NN, 0.0);
 
-//building matrix:
-    LINALG::vector ap{3,2,2,2,3};
-    LINALG::vector ae(5,-1);
-    LINALG::vector aw(5,-1);
+    // coeffGen brings fluxes and linear system together
+    coeffGen.assembleCoeffMatrix(A);
+    coeffGen.assembleConstVec( b );
 
-    LINALG::matrixOperations::fillBand(0, A, ap); // central band
-    LINALG::matrixOperations::fillBand(1, A, ae); // east band
-    LINALG::matrixOperations::fillBand(-1, A, aw); // west band
-
-    // building source vector:
-    LINALG::vector b{2*100,0,0,0,2*500};
-
-    std::cout<< A << std::endl;
-    blaze::DynamicVector<GLOBAL::scalar,blaze::columnVector> x( NN, 0.1 );// b( NN, 1.0 );
+    // solve system
     LINALG::linearEquationSolvers::solveConjugateGradient(A, b, x, 1e2, 1e-5);
+    std::cout<< A << std::endl;
     std::cout << x << std::endl;
 
     return 0;

@@ -5,6 +5,7 @@ set(HEADER_FILES
         FIELD/algebra.h
         FIELD/fieldTypeDefs.h
         FVM/collocatedField.h
+        FVM/coefficientMatrixGenerator.h
         LINALG/linalgTypeDefs.h
         LINALG/linearEquationSolvers.h
         LINALG/matrixOperations.h
@@ -17,9 +18,9 @@ set(SOURCE_FILES
         FIELD/field.cpp
         FIELD/algebra.cpp
         FVM/collocatedField.cpp
+        FVM/coefficientMatrixGenerator.cpp
         LINALG/linearEquationSolvers.cpp
         LINALG/matrixOperations.cpp
-        MESH/structured2d.cpp
-        )
+        MESH/structured2d.cpp)
 
 add_library(kernel_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

@@ -1,6 +1,3 @@
-//
-// Created by fynne on 4/17/23.
-//
 
 #include "../globalTypeDefs.h"
 #include <blaze/Forward.h>

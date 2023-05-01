@@ -10,3 +10,7 @@ std::vector<GLOBAL::scalar> collocatedField::createLinearizedData( MESH::structu
     return {std::vector<GLOBAL::scalar>(mesh.nbCells, 0.0)};
 }
 
+void collocatedField::fillWithIncreasingNumbers( GLOBAL::vector &vec ){
+    std::generate(vec.begin(), vec.end(), [n = 0] () mutable { return n++; } );
+}
+
