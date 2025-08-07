@@ -3,24 +3,22 @@
 #include <blaze/Math.h>
 
 #include "globalTypeDefs.h"
-#include "FVM/linEqSystem.h"
+#include "FVM/coefficientMatrixGenerator.h"
 #include "LINALG/linearEquationSolvers.h"
 #include "MESH/structured2d.h"
 #include "FIELD/field.h"
 
+
+// compile this file as main.cpp
+
+
 int main()
 {
 
-    auto mesh(MESH::structured2dRegularRectangle( 0.1, 0.1, 50 ));
+    auto mesh(MESH::structured2dRegularRectangle( 5.0, 1.0, 1 ));
     auto T = FIELD::field( mesh );
 
     const size_t NN(mesh.nbCells);
-
-
-
-
-
-
 
     // defining fluxes
     GLOBAL::vector ap{3,2,2,2,3};
@@ -29,7 +27,7 @@ int main()
     GLOBAL::vector sourceTerms{2*100,0,0,0,2*500};
 
     // translating fluxes to coefficient arrays
-    FVM::linEqSystem coeffGen { mesh };
+    FVM::coefficientMatrixGenerator coeffGen { mesh };
     coeffGen.setDirectionalFlux( ap, FVM::CardinalDirection::centre );
     coeffGen.setDirectionalFlux( ae, FVM::CardinalDirection::east );
     coeffGen.setDirectionalFlux( aw, FVM::CardinalDirection::west );
