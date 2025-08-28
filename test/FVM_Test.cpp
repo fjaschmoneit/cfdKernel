@@ -7,14 +7,14 @@ using namespace FVM;
 
 struct coefficientMatrixGeneratorFixture : public ::testing::Test {
 
-    MESH::structured2dRegularRectangle mesh { 5.0, 4.0, 1 };
+    MESH::structured2dRegularRectangle mesh { 5.0, 5, 4.0, 4 };
     linEqSystem linsys { mesh };
 
     // FJA newZeroMatrix should not be a 'matrix operation' but called similarly to zeroVector
-    LINALG::matrix zeroMat = LINALG::matrixOperations::newZeroMatrix(mesh.nbCells);
-    LINALG::matrix identityMat = LINALG::matrixOperations::newIdentityMatrix(mesh.nbCells);
-    LINALG::vector zeroVector = LINALG::vector(mesh.nbCells, 0.0);
-    LINALG::vector oneVector = LINALG::vector(mesh.nbCells, 1.0);
+    LINALG::matrix zeroMat = LINALG::matrixOperations::newZeroMatrix(mesh.nbCells());
+    LINALG::matrix identityMat = LINALG::matrixOperations::newIdentityMatrix(mesh.nbCells());
+    LINALG::vector zeroVector = LINALG::vector(mesh.nbCells(), 0.0);
+    LINALG::vector oneVector = LINALG::vector(mesh.nbCells(), 1.0);
 };
 
 TEST_F(coefficientMatrixGeneratorFixture, defaultCoeffMatrix){
@@ -31,14 +31,14 @@ TEST_F(coefficientMatrixGeneratorFixture, defaultCoeffMatrix){
 // this is essentially the same test as 'TEST_F(matrixOperationsFixture, fillbandWithEntries_alignmentOfOffDiagonals)'
 // but here we also test the interface between std::vector types and their implementation in to a coeff matrix.
 TEST_F(coefficientMatrixGeneratorFixture, setDirectionalFlux) {
-    auto nbX(mesh.nbCellsX);
+    auto nbX(mesh.nbCellsX());
 
     // my a_i are full length:
-    GLOBAL::vector ap(mesh.nbCells, 2.0);
-    GLOBAL::vector ae(mesh.nbCells, 3.0);
-    GLOBAL::vector aw(mesh.nbCells, 4.0);
-    GLOBAL::vector an(mesh.nbCells, 5.0);
-    GLOBAL::vector as(mesh.nbCells, 6.0);
+    GLOBAL::vector ap(mesh.nbCells(), 2.0);
+    GLOBAL::vector ae(mesh.nbCells(), 3.0);
+    GLOBAL::vector aw(mesh.nbCells(), 4.0);
+    GLOBAL::vector an(mesh.nbCells(), 5.0);
+    GLOBAL::vector as(mesh.nbCells(), 6.0);
 
     // expected coeff matrix:   row sum:
     // (2 3 ... 6 ...    )      11

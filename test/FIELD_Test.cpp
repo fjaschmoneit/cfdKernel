@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "FIELD/field.h"
 #include "MESH/structured2d.h"
+// #include <ranges>
+
 
 using namespace FIELD;
 
@@ -11,62 +13,56 @@ struct fieldFixture : public ::testing::Test {
     GLOBAL::scalar lenY = 3.0;
 
     // spacial discretization
-    int nbCellsPerLength = 2;
+    unsigned int nbCellsPerLength = 2;
 
-    MESH::structured2dRegularRectangle mesh{lenX, lenY, nbCellsPerLength };
-    int nbCells = nbCellsPerLength*lenX *nbCellsPerLength*lenY;
+    MESH::structured2dRegularRectangle mesh{lenX, nbCellsPerLength, lenY, nbCellsPerLength };
 
     field myField{mesh};
 };
 
 TEST_F(fieldFixture, iterators) {
-    // always call with lengthX=1, lengthY=0.8, cellsPerMeter=5
-    const MESH::structured2dRegularRectangle mesh{1., 0.8, 5};
+    // always call with lengthX=1, nbX = 5, lengthY=0.8, nbY=4
+    const MESH::structured2dRegularRectangle mesh{1., 5, 0.8, 4};
 
     field T(mesh);
 
-    for (auto ti = T.region(MESH::RegionID::Boundary_left).begin(); ti != T.region(MESH::RegionID::Boundary_left).end(); ++ti) {
-        *ti = 1.;
-    }
+    // different ways to access the range:
+    std::ranges::fill(T.region(MESH::RegionID::Entire), -1.);
 
-    for (auto ti = T.region(MESH::RegionID::Boundary_bottom).begin(); ti != T.region(MESH::RegionID::Boundary_bottom).end(); ++ti) {
+    std::for_each (T.region(MESH::RegionID::Boundary_left).begin(),
+                   T.region(MESH::RegionID::Boundary_left).end(),
+                   [&](auto& q){ q = 1.;});
+
+    for (auto ti = T.region(MESH::RegionID::Boundary_bottom).begin();
+         ti != T.region(MESH::RegionID::Boundary_bottom).end();
+         ++ti) {
         *ti = 2.;
     }
 
-    for (auto ti = T.region(MESH::RegionID::Boundary_right).begin(); ti != T.region(MESH::RegionID::Boundary_right).end(); ++ti) {
-        *ti = 3.;
-    }
+    std::ranges::fill(T.region(MESH::RegionID::Boundary_right), 3.);
 
-    for (auto ti = T.region(MESH::RegionID::Boundary_top).begin(); ti != T.region(MESH::RegionID::Boundary_top).end(); ++ti) {
-        *ti = 4.;
-    }
-
-    for (auto ti = T.region(MESH::RegionID::Internal).begin(); ti != T.region(MESH::RegionID::Internal).end(); ++ti) {
-        *ti = -1.;
-    }
-
-    auto data = T.getData();
+    std::ranges::fill(T.region(MESH::RegionID::Boundary_top), 4.);
 
     // artificially building a similar mesh:
-    GLOBAL::vector similarField(mesh.nbCells, -1.0);
+    GLOBAL::vector similarField(mesh.nbCells(), -1.0);
 
     // boundary 0
-    for (int i = 0; i < mesh.nbCellsY; ++i)
-        similarField[i*mesh.nbCellsX] = 1.;
+    for (int i = 0; i < mesh.nbCellsY(); ++i)
+        similarField[i*mesh.nbCellsX()] = 1.;
 
     // Boundary 1
-    for (int i = 0; i < mesh.nbCellsX; ++i)
-        similarField[i + mesh.nbCells-mesh.nbCellsX] = 2.;
+    for (int i = 0; i < mesh.nbCellsX(); ++i)
+        similarField[i + mesh.nbCells()-mesh.nbCellsX()] = 2.;
 
     //Boundary 2
-    for (int i = 0; i < mesh.nbCellsY; ++i)
-        similarField[i*mesh.nbCellsX + mesh.nbCellsY] = 3.;
+    for (int i = 0; i < mesh.nbCellsY(); ++i)
+        similarField[i*mesh.nbCellsX() + mesh.nbCellsY()] = 3.;
 
     // boundary 3
-    for (int i = 0; i < mesh.nbCellsX; ++i)
+    for (int i = 0; i < mesh.nbCellsX(); ++i)
         similarField[i ] = 4.;
 
-    EXPECT_EQ(data, similarField);
+    EXPECT_EQ(T.getData(), similarField);
 }
 
 

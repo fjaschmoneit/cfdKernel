@@ -26,9 +26,9 @@ namespace FVM{
     public:
         linEqSystem( MESH::structured2dRegularRectangle const &mesh );
 
-        const std::vector<int> getBands() const;
-        const LINALG::matrix & getMatrix() const;
-        const LINALG::vector & getSourceVector() const;
+        const std::vector<int> getBands() const {return bands_;};
+        const LINALG::matrix & getMatrix() const {return A_;};
+        const LINALG::vector & getSourceVector() const {return b_;};
         void setDirectionalFlux( const GLOBAL::vector & ai, const CardinalDirection dir );
         void setConstVec( const GLOBAL::vector & b );
     };

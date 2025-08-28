@@ -6,7 +6,7 @@
 // #include "fieldTypeDefs.h"
 #include "../MESH/structured2d.h"
 // #include "../FVM/collocatedField.h"
-#include "fieldProxy.h"
+#include "fieldView.h"
 
 
 namespace FIELD{
@@ -20,14 +20,14 @@ namespace FIELD{
         // constructor on any mesh type to be implemented:
         field(MESH::structured2dRegularRectangle const &mesh)
         :mesh_(mesh),
-         data_(std::vector<GLOBAL::scalar>(mesh.nbCells, 0.))
+         data_(std::vector<GLOBAL::scalar>(mesh.nbCells(), 0.))
         {}
 
         GLOBAL::scalar& operator[](unsigned int cell) { return data_[cell]; }
         const GLOBAL::scalar& operator[](unsigned int cell) const { return data_[cell]; }
 
-        FieldProxyRange region( MESH::RegionID regionID ) {
-            return FieldProxyRange( mesh_.getRegion(regionID), &data_ );
+        FieldViewRange region( MESH::RegionID regionID ) {
+            return FieldViewRange( mesh_.region(regionID), &data_ );
         }
 
         const GLOBAL::vector& getData() const {

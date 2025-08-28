@@ -13,30 +13,58 @@
 #include <stdexcept>
 #include <unordered_map>
 
+#include "globalTypeDefs.h"
+
 
 namespace MESH {
 
     // Enum for region identifiers
     enum class RegionID {
-        Internal,
+        Entire,
         Boundary_left,
         Boundary_bottom,
         Boundary_right,
         Boundary_top
     };
 
-    struct region {
-        std::vector<unsigned int> cells;
-        std::vector<unsigned int>::const_iterator begin() const { return cells.begin(); }
-        std::vector<unsigned int>::const_iterator end() const { return cells.end(); }// past-last-element iterator cannot be dereferenced
-        std::vector<unsigned int>::const_iterator last() const { return std::prev(cells.end()); } // iterator to last existing element, can be dereferenced.
+    struct Region {
+        struct iterator {
+            using value_type        = int;
+            using difference_type   = std::ptrdiff_t;
+            using reference         = int;            // yields by value
+            using pointer           = const int*;     // not dereferenced normally
+            using iterator_category = std::forward_iterator_tag;
+
+            int current;
+            int step;
+            int remaining;
+
+            reference operator*() const { return current; }
+            iterator& operator++() { current += step; --remaining; return *this; }
+            iterator operator++(int) { auto tmp = *this; ++(*this); return tmp; }
+            bool operator==(const iterator& other) const { return remaining == other.remaining; }
+            bool operator!=(const iterator& other) const { return remaining != other.remaining; }
+        };
+
+        int start;
+        int step;
+        int count;
+
+        iterator begin() const { return { start, step, count }; }
+        iterator end()   const { return { 0, step, 0 }; }
+        iterator last()  const { return { start + step*(count - 1), step, 1 }; }
     };
+
 
     class structured2dRegularRectangle{
 
     private:
+        // order must follow initialization list
+        const float lenX_, lenY_;
+        const unsigned int nbCellsX_, nbCellsY_, nbCells_;
+
         // Registry of all regions; enum class ensures type safety
-        std::unordered_map<RegionID, region> regions;
+        std::unordered_map<RegionID, Region> regions;
 
         // how can I do this at compile time?
         // Each boundary side is represented by a vector of cell indices
@@ -62,27 +90,34 @@ namespace MESH {
         // boundaries[2] = [19,14,9,4]
         // boundaries[3] = [4,3,2,1,0]
 
-        void fillBoundaries();
-        void fillInternalCells();
-
+        void fillRegion(RegionID region);
         bool isBoundaryCell( unsigned int i ) const;
 
     public:
+        structured2dRegularRectangle(float lengthX, unsigned int nbCellsX, float lengthY, unsigned int nbCellsY);
 
-        // order must follow initialization list
-        const float lenX, lenY;
-        const unsigned int cellsPerLength, nbCellsX, nbCellsY, nbCells;
+        unsigned int nbCellsX() const { return nbCellsX_; }
+        unsigned int nbCellsY() const { return nbCellsY_; }
+        unsigned int nbCells() const { return nbCells_; }
+        GLOBAL::scalar lenX() const { return lenX_; }
+        GLOBAL::scalar lenY() const { return lenY_; }
 
-        structured2dRegularRectangle(float lengthX, float lengthY, int cellsPerMeter);
-        // ~structured2dRegularRectangle() override = default;
+        // returns a cell 1/dx and 1/dy.
+        // in regular meshes, these are same everywhere
+        // should accept iterator to mesh cell
+        const GLOBAL::scalar getCellReciprocalSpacing_X( ) const {
+            return static_cast<GLOBAL::scalar>(nbCellsX_)/lenX_;
+        }
 
-        // // Example: add region (could be called during construction or mesh setup)
-        // void addRegion(RegionID id, std::vector<unsigned int> cellIndices) {
-        //     regions[id] = region{std::move(cellIndices)};
-        // }
+        const GLOBAL::scalar getCellReciprocalSpacing_Y( ) const {
+            return static_cast<GLOBAL::scalar>(nbCellsY_)/lenY_;
+        }
 
-        // Accessor: returns const reference for safe, read-only iteration
-        const region& getRegion(RegionID id) const {
+        // OBS!! This is for node-centered CV. Will change to face-centered CV
+        const GLOBAL::scalar getCellCenterCoordinate_X(int cellId) const;
+        const GLOBAL::scalar getCellCenterCoordinate_Y(int cellId) const;
+
+        const Region& region(RegionID id) const {
             auto it = regions.find(id);
             if (it == regions.end()) throw std::out_of_range("Unknown region id");
             return it->second;

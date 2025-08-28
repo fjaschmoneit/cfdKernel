@@ -40,10 +40,10 @@ int main()
     LINALG::vector b = LINALG::vector(NN, 0.0);
     LINALG::vector x = LINALG::vector(NN, 0.0);
 
-    // coeffGen brings fluxes and linear system together
-    coeffGen.assembleCoeffMatrix(A);
-    coeffGen.assembleConstVec( b );
-
+    // // coeffGen brings fluxes and linear system together
+    // coeffGen.assembleCoeffMatrix(A);
+    // coeffGen.assembleConstVec( b );
+    //
     // solve system
     LINALG::linearEquationSolvers::solveConjugateGradient(A, b, x, 1e2, 1e-5);
     std::cout<< A << std::endl;

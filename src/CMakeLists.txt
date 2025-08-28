@@ -3,7 +3,6 @@ project(kernel)
 set(HEADER_FILES
         FIELD/field.h
         FIELD/algebra.h
-        FIELD/obsolete_fieldTypeDefs.h
         FVM/collocatedField.h
         FVM/linEqSystem.h
         LINALG/linalgTypeDefs.h
@@ -23,7 +22,7 @@ set(SOURCE_FILES
         LINALG/matrixOperations.cpp
         MESH/structured2d.cpp
         SOLVER/scalarTransport.cpp
-        FIELD/fieldProxy.h
+        FIELD/fieldView.h
 )
 
 add_library(kernel_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

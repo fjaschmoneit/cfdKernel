@@ -7,65 +7,62 @@
 using namespace MESH;
 
 // constructor
-structured2dRegularRectangle::structured2dRegularRectangle(float lengthX, float lengthY, int cellsPerMeter)
-        : lenX(lengthX),
-          lenY(lengthY),
-          cellsPerLength(cellsPerMeter),
-          nbCellsX( (unsigned int) (lengthX*double(cellsPerMeter)) ),
-          nbCellsY( (unsigned int) (lengthY*double(cellsPerMeter)) ),
-          nbCells( nbCellsX*nbCellsY )
+structured2dRegularRectangle::structured2dRegularRectangle(float lengthX, unsigned int nbCellsX, float lengthY, unsigned int nbCellsY)
+        : lenX_(lengthX),
+          lenY_(lengthY),
+          nbCellsX_( nbCellsX ),
+          nbCellsY_( nbCellsY ),
+          nbCells_( nbCellsX*nbCellsY )
 {
     if (nbCellsX < 2 || nbCellsY < 2)
         throw std::runtime_error("Mesh dimensions must be >= 2");
 
     // Initialize boundaries container with 4 sides for a rectangle: 0=bottom,1=left,2=top,3=right
-    fillBoundaries();
-    fillInternalCells();
+    fillRegion( RegionID::Entire );
+    fillRegion( RegionID::Boundary_bottom );
+    fillRegion( RegionID::Boundary_top );
+    fillRegion( RegionID::Boundary_left );
+    fillRegion( RegionID::Boundary_right );
 }
 
+// MESH::region::iterator
+void structured2dRegularRectangle::fillRegion(RegionID id) {
+    int nbX = static_cast<int>(nbCellsX_);
+    int nbY = static_cast<int>(nbCellsY_);
+    int nbXY = static_cast<int>(nbCells_);
 
-void structured2dRegularRectangle::fillBoundaries(){
-    regions[RegionID::Boundary_left].cells.resize(nbCellsY);
-    regions[RegionID::Boundary_bottom].cells.resize(nbCellsX);
-    regions[RegionID::Boundary_right].cells.resize(nbCellsY);
-    regions[RegionID::Boundary_top].cells.resize(nbCellsX);
-
-    // Left boundary #0 (i = 0..nbY-1, j = 0)
-    for (int i = 0; i < nbCellsY; ++i) {
-        regions[RegionID::Boundary_left].cells[i] = i * nbCellsX;
-    }
-
-    // Bottom boundary #1 (i = nbY-1, j = 0...nbX-1)
-    for (int j = 0; j < nbCellsX; ++j) {
-        regions[RegionID::Boundary_bottom].cells[j] = j + (nbCellsY -1)*nbCellsX;
-    }
-
-    // Right boundary #2 (i = 0..nbY-1, j = nbX-1)
-    for (int i = 0; i < nbCellsY; ++i) {
-        regions[RegionID::Boundary_right].cells[i] = nbCellsX-1 + (nbCellsY -1)*nbCellsX -i*nbCellsX;
-    }
-
-    // Top boundary #3 (i = 0, j = 0..nbCellsX-1)
-    for (int j = 0; j < nbCellsX; ++j) {
-        regions[RegionID::Boundary_top].cells[j] = nbCellsX-1-j;
-    }
+    if (id == RegionID::Entire ) {
+        regions[id] = Region{
+            0,       // start
+            1,       // step
+            nbXY     // count
+        };
+    }else if ( id == RegionID::Boundary_left )
+        regions[id] = Region{0,nbX,nbY  };
+    else if ( id == RegionID::Boundary_bottom )
+        regions[id] = Region{nbX*(nbY-1),1,nbX  };
+    else if ( id == RegionID::Boundary_right )
+        regions[id] = Region{nbX-1 +(nbY-1)*nbX,-nbX,nbY  };
+    else if ( id == RegionID::Boundary_top )
+        regions[id] = Region{nbX-1,-1,nbX  };
 }
 
 bool structured2dRegularRectangle::isBoundaryCell( unsigned int cell ) const {
-        unsigned int i = cell % nbCellsX;
-        unsigned int j = cell / nbCellsX;
-        return i == 0 || i == nbCellsX - 1 || j == 0 || j == nbCellsY - 1;
+        unsigned int i = cell % nbCellsX();
+        unsigned int j = cell / nbCellsX();
+        return i == 0 || i == nbCellsX() - 1 || j == 0 || j == nbCellsY() - 1;
 }
 
-void structured2dRegularRectangle::fillInternalCells() {
-    regions[RegionID::Internal].cells.resize( nbCells - (2*nbCellsX+2*nbCellsY-4) );
+const GLOBAL::scalar structured2dRegularRectangle::getCellCenterCoordinate_X(int cellId) const{
+    unsigned int i = cellId % nbCellsX_;
+    const GLOBAL::scalar r_dx = getCellReciprocalSpacing_X();
+    // Cell-centered coordinates: offset by +0.5 cell widths
+    return (GLOBAL::scalar(i) + GLOBAL::scalar(0.5)) / r_dx;
+}
 
-    unsigned int counter = 0;
-    for (int icell = 0; icell < nbCells; ++icell) {
-        if ( !isBoundaryCell(icell)) {
-            regions[RegionID::Internal].cells[counter] = icell;
-            counter++;
-        }
-    }
+const GLOBAL::scalar structured2dRegularRectangle::getCellCenterCoordinate_Y(int cellId) const{
+    unsigned int i = cellId / nbCellsX_;
+    const GLOBAL::scalar r_dy = getCellReciprocalSpacing_Y();
+    return (GLOBAL::scalar(i) + GLOBAL::scalar(0.5)) / r_dy;
 }
 

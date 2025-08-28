@@ -24,14 +24,14 @@ void FVM::solve(linEqSystem const& eqs,  GLOBAL::vector& X, std::string const Me
 // constructor
 FVM::linEqSystem::linEqSystem(const MESH::structured2dRegularRectangle &mesh)
     :pmesh_(std::make_shared<MESH::structured2dRegularRectangle>(mesh)),
-     A_(mesh.nbCells, mesh.nbCells),
-     bands_(std::vector<int>{ static_cast<int>(-mesh.nbCellsX), -1, 0, 1, static_cast<int>(mesh.nbCellsX)} ),
+     A_(mesh.nbCells(), mesh.nbCells()),
+     bands_(std::vector<int>{ static_cast<int>(-mesh.nbCellsX()), -1, 0, 1, static_cast<int>(mesh.nbCellsX())} ),
      ap_(blaze::band(A_,0)),
-     an_(blaze::band(A_,static_cast<int>(-mesh.nbCellsX))),
+     an_(blaze::band(A_,static_cast<int>(-mesh.nbCellsX()))),
      ae_(blaze::band(A_,1)),
-     as_(blaze::band(A_,static_cast<int>(mesh.nbCellsX))),
+     as_(blaze::band(A_,static_cast<int>(mesh.nbCellsX()))),
      aw_(blaze::band(A_,-1)),
-     b_(mesh.nbCells, 0.0)
+     b_(mesh.nbCells(), 0.0)
 {
     // intializing coefficient matrix as idendity matrix, (I cannot use std::fill here)
     for(size_t i = 0; i < ap_.size(); i++)  ap_[i] = 1.;
@@ -45,28 +45,16 @@ FVM::linEqSystem::linEqSystem(const MESH::structured2dRegularRectangle &mesh)
     bands_.shrink_to_fit();
 }
 
-const std::vector<int> FVM::linEqSystem::getBands() const{
-    return bands_;
-}
-
-const LINALG::matrix & FVM::linEqSystem::getMatrix() const {
-    return A_;
-}
-
-const LINALG::vector & FVM::linEqSystem::getSourceVector() const {
-    return b_;
-}
-
-
 void FVM::linEqSystem::setConstVec( const GLOBAL::vector & b ){
-    for(auto i=0; i<b.size(); ++i){
-        b_[i] = b[i];
-    }
+    std::copy(b.begin(), b.end(), b_.begin());
+    // for(auto i=0; i<b.size(); ++i){
+    //     b_[i] = b[i];
+    // }
 }
 
 void FVM::linEqSystem::setDirectionalFlux( const GLOBAL::vector & ai, const CardinalDirection dir  ){
 
-    if ( ai.size() != pmesh_->nbCells ) {
+    if ( ai.size() != pmesh_->nbCells() ) {
         throw std::runtime_error("Error in setDirectionalFlux: input vector should have dimension of nbCells.");
     }
 
@@ -83,5 +71,5 @@ void FVM::linEqSystem::setDirectionalFlux( const GLOBAL::vector & ai, const Card
     else if ( dir == FVM::CardinalDirection::east )    copyElements( ae_, ai, 0 );
     else if ( dir == FVM::CardinalDirection::south )    copyElements( as_, ai, 0 );
     else if ( dir == FVM::CardinalDirection::west )    copyElements( aw_, ai, 1 );
-    else if ( dir == FVM::CardinalDirection::north )    copyElements( an_, ai, pmesh_->nbCellsX );
+    else if ( dir == FVM::CardinalDirection::north )    copyElements( an_, ai, pmesh_->nbCellsX() );
 }
